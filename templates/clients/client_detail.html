@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - CCM{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-3xl font-bold text-gray-900">{{ page_title }}</h2>
+    <p class="text-gray-600 mt-2">Code: <span class="font-mono font-semibold">{{ client.client_code }}</span></p>
+    <a href="{% url 'clients:list' %}" class="text-blue-600 hover:underline mt-2 inline-block">← Back to Clients</a>
+</div>
+
+<div class="bg-white rounded-lg shadow-md">
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200">
+        <div class="flex">
+            <button class="tab-btn active px-6 py-4 font-semibold text-gray-900 hover:text-blue-600" onclick="switchTab(event, 'general')">
+                General
+            </button>
+            <button class="tab-btn px-6 py-4 font-semibold text-gray-900 hover:text-blue-600" onclick="switchTab(event, 'contacts')">
+                Contacts <span class="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">{{ client.contacts.count }}</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="p-6">
+        <!-- General Tab -->
+        <div id="general" class="tab-content active">
+            <form id="update-form" method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Name Field -->
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                        Name <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-red-500 text-sm mt-2">
+                            {% for error in form.name.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                    <!-- Client Code Field (Read-only) -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-900 mb-2">Client Code</label>
+                    <input type="text" value="{{ client.client_code }}" readonly class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed">
+                </div>
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error">
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}   
+
+                <!-- Submit Buttons -->
+            </form>
+
+            <div class="flex gap-4 pt-4">
+                <button type="submit" form="update-form" class="btn btn-primary">Update Client</button>
+                <form method="post" action="{% url 'clients:delete' client.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this client?')">
+                        Delete Client
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Contacts Tab -->
+        <div id="contacts" class="tab-content">
+            <!-- Add Contact Section -->
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 class="font-semibold text-gray-900 mb-4">Link a New Contact</h3>
+                <div class="flex gap-4" id="contact-link-form">
+                    <select id="contact-select" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Choose a contact --</option>
+                    </select>
+                    <button type="button" class="btn btn-primary" onclick="linkContact()">Link Contact</button>
+                </div>
+                <div id="form-errors" class="text-red-500 text-sm mt-2" style="display: none;"></div>
+            </div>
+
+            <!-- Linked Contacts List -->
+            <div id="contacts-list">
+                {% if client.contacts.all %}
+                    <h3 class="font-semibold text-gray-900 mb-4">Linked Contacts</h3>
+                    <table class="w-full">
+                        <thead class="bg-gray-100 border-b border-gray-200">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Contact Full Name</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Contact Email</th>
+                                <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200" id="contacts-tbody">
+                            {% for contact in client.contacts.all %}
+                                <tr class="hover:bg-gray-50 transition contact-row-{{ contact.id }}">
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ contact.get_full_name }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">{{ contact.email }}</td>
+                                    <td class="px-6 py-4 text-sm text-center">
+                                        <a href="#" class="text-red-600 hover:text-red-900 font-semibold" onclick="unlinkContact(event, {{ contact.id }})">Unlink</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-gray-600">No contacts found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Tabs and AJAX -->
+<script>
+    const clientId = {{ client.pk }};
+    // Tab Switching
+    function switchTab(event, tabName) {
+        event.preventDefault();
+        
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        
+        // Remove active class from all buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        // Show selected tab and mark button as active
+        document.getElementById(tabName).classList.add('active');
+        event.target.classList.add('active');
+
+        // Load available contacts when switching to contacts tab
+        if (tabName === 'contacts') {
+            loadAvailableContacts();
+        }
+    }
+
+    // Load available contacts for linking
+    function loadAvailableContacts() {
+        const selectElement = document.getElementById('contact-select');
+        
+        fetch(`/clients/${clientId}/available-contacts/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                selectElement.innerHTML = '<option value="">-- Choose a contact --</option>';
+                data.contacts.forEach(contact => {
+                    const option = document.createElement('option');
+                    option.value = contact.id;
+                    option.textContent = `${contact.full_name} (${contact.email})`;
+                    selectElement.appendChild(option);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showFormError('Failed to load contacts');
+        });
+    }
+
+    // Link contact to client
+    function linkContact() {
+        const contactId = document.getElementById('contact-select').value;
+        const formErrors = document.getElementById('form-errors');
+        formErrors.style.display = 'none';
+        formErrors.innerHTML = '';
+
+        if (!contactId) {
+            formErrors.innerHTML = 'Please select a contact';
+            formErrors.style.display = 'block';
+            return;
+        }
+
+        fetch(`/clients/${clientId}/link-contact/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ contact_id: contactId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add new contact to table
+                addContactToTable(data.contact);
+                // Reset select
+                document.getElementById('contact-select').value = '';
+                // Show success message
+                showNotification('success', data.message);
+            } else {
+                showFormError(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showFormError('Failed to link contact');
+        });
+    }
+
+    // Add contact row to table
+    function addContactToTable(contact) {
+        const contactsList = document.getElementById('contacts-list');
+        
+        // If no contacts message exists, remove it
+        const noContactsMsg = contactsList.querySelector('p');
+        if (noContactsMsg && noContactsMsg.textContent === 'No contacts found.') {
+            noContactsMsg.remove();
+            // Add table if it doesn't exist
+            if (!contactsList.querySelector('table')) {
+                const table = document.createElement('table');
+                table.className = 'w-full';
+                table.innerHTML = `
+                    <thead class="bg-gray-100 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Contact Full Name</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Contact Email</th>
+                            <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contacts-tbody" class="divide-y divide-gray-200"></tbody>
+                `;
+                contactsList.innerHTML = '<h3 class="font-semibold text-gray-900 mb-4">Linked Contacts</h3>';
+                contactsList.appendChild(table);
+            }
+        }
+
+        const tbody = document.getElementById('contacts-tbody');
+        const newRow = document.createElement('tr');
+        newRow.className = `hover:bg-gray-50 transition contact-row-${contact.id}`;
+        newRow.innerHTML = `
+            <td class="px-6 py-4 text-sm text-gray-900">${contact.full_name}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">${contact.email}</td>
+            <td class="px-6 py-4 text-sm text-center">
+                <a href="#" class="text-red-600 hover:text-red-900 font-semibold" onclick="unlinkContact(event, ${contact.id})">Unlink</a>
+            </td>
+        `;
+        tbody.appendChild(newRow);
+    }
+
+    // Unlink contact from client
+    function unlinkContact(event, contactId) {
+        event.preventDefault();
+        
+        if (!confirm('Are you sure you want to unlink this contact?')) {
+            return;
+        }
+
+        fetch(`/clients/${clientId}/unlink-contact/${contactId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove contact row from table
+                const row = document.querySelector(`.contact-row-${contactId}`);
+                if (row) {
+                    row.remove();
+                }
+                // Refresh available contacts
+                loadAvailableContacts();
+                // Show success message
+                showNotification('success', data.message);
+            } else {
+                showNotification('error', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('error', 'Failed to unlink contact');
+        });
+    }
+
+    // Helper function to show form errors
+    function showFormError(message) {
+        const formErrors = document.getElementById('form-errors');
+        formErrors.innerHTML = message;
+        formErrors.style.display = 'block';
+    }
+
+    // Helper function to show notifications
+    function showNotification(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button onclick="this.parentElement.style.display='none';" class="float-right text-lg">&times;</button>
+        `;
+        document.querySelector('.max-w-7xl').insertBefore(alertDiv, document.querySelector('.max-w-7xl').firstChild);
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            alertDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    // Helper function to get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Load available contacts when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // This will be called when contacts tab is clicked
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Clients - CCM{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h2 class="text-3xl font-bold text-gray-900">Clients</h2>
+        <p class="text-gray-600 mt-2">Total clients: <span class="font-semibold">{{ total_clients }}</span></p>
+    </div>
+    <a href="{% url 'clients:create' %}" class="btn btn-primary">+ Create New Client</a>
+</div>
+
+<!-- Clients Table -->
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    {% if clients %}
+        <table class="w-full">
+            <thead class="bg-gray-100 border-b border-gray-200">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Client Code</th>
+                    <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900">No. of Linked Contacts</th>
+                    <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for client in clients %}
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            <a href="{% url 'clients:detail' client.pk %}" class="text-blue-600 hover:underline font-medium">
+                                {{ client.name }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ client.client_code }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full">
+                                {{ client.contact_count }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-center">
+                            <a href="{% url 'clients:detail' client.pk %}" class="btn btn-primary btn-sm">Edit</a>
+                            <form method="post" action="{% url 'clients:delete' client.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="px-6 py-12 text-center">
+            <p class="text-gray-600 text-lg">No client(s) found.</p>
+            <a href="{% url 'clients:create' %}" class="btn btn-primary mt-4 inline-block">Create First Client</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

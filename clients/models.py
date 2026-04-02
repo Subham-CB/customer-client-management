@@ -34,6 +34,7 @@ class Client(models.Model):
 
     def save(self, *args, **kwargs):
 
+
         if not self.client_code:
             for _ in range(5):  
                 try:
@@ -47,10 +48,8 @@ class Client(models.Model):
 
         super().save(*args, **kwargs)
 
-        def _get_prefix(self):
-
-            words = self.name.upper().split()
-
+    def _get_prefix(self):
+        words = self.name.upper().split()
         
         if len(words) >= 3:
             return ''.join(word[0] for word in words[:3])
@@ -82,8 +81,6 @@ class Client(models.Model):
             raise ValidationError("Client code limit reached")
 
         return f"{prefix}{next_number:03d}"
-
-    
-
+   
     def get_linked_contacts_count(self):
         return self.contacts.count()
