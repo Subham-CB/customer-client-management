@@ -74,14 +74,14 @@
     </form>
 </div>
 
-<!-- JavaScript Validation -->
+<!--Validation -->
 <script>
     document.getElementById('contact-form').addEventListener('submit', function(e) {
         const surname = document.querySelector('input[name="surname"]').value.trim();
         const name = document.querySelector('input[name="name"]').value.trim();
         const email = document.querySelector('input[name="email"]').value.trim();
 
-        // Client-side validation
+        // Input validation
         if (!surname || !name || !email) {
             e.preventDefault();
             alert('All fields are required');
@@ -100,7 +100,7 @@
             return false;
         }
 
-        // Simple email validation
+        // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             e.preventDefault();
