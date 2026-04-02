@@ -23,8 +23,10 @@
                     <h1 class="text-2xl font-bold text-blue-600">CCM</h1>
                     <span class="ml-2 text-gray-600">Client Contact Management</span>
                 </div>
-                <div class="flex space-x-4">
-                    <a href="{% url 'clients:list' %}" class="text-gray-700 hover:text-blue-600 font-medium">Clients</a>
+                <div class="flex space-x-2">
+
+                    <a href="{% url 'clients:list' %}" class="text-gray-700 hover:text-blue-600 font-medium underline">Clients</a>
+                    <a href="{% url 'contacts:list' %}" class="text-gray-700 hover:text-blue-600 font-medium underline">Contacts</a>
                 </div>
             </div>
         </div>
