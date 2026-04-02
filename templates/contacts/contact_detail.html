@@ -83,18 +83,22 @@
                     </div>
                 {% endif %}
 
+                <!-- Update and Delete Buttons -->
+                <div class="flex gap-4 pt-4">
+                    <button type="submit" class="btn btn-primary">Update Contact</button>
+
+                    <button type="submit"
+                            formaction="{% url 'contacts:delete' contact.pk %}"
+                            formmethod="post" 
+                            class="btn btn-danger"
+                            onclick="return confirm('Are you sure you want to delete this contact?')">
+                        Delete Contact
+                    </button>
+
+                </div>
+
             </form>
-                <!-- Submit Buttons -->
-            <div class="flex gap-4 pt-4">
-                <button type="submit" class="btn btn-primary">Update Contact</button>
                 
-                <form method="post" action="{% url 'contacts:delete' contact.pk %}" style="display:inline;">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this contact?')">
-                    Delete Contact
-                  </button>
-                </form> 
-            </div>
         </div>
 
         <!-- Clients Tab -->
@@ -143,7 +147,7 @@
     </div>
 </div>
 
-<!-- JavaScript for Tabs and AJAX -->
+<!-- Functions-->
 <script>
     const contactId = {{ contact.pk }};
 
