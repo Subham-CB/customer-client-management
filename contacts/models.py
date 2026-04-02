@@ -3,10 +3,30 @@ from clients.models import Client
 
 
 class Contact(models.Model):
-    name = models.CharField(max_length=255)
-    surname = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    clients = models.ManyToManyField(Client, blank=True, related_name='contacts')
+    name = models.CharField(
+        max_length=255,
+        help_text="Contact first name"
+    )
+    
+    surname = models.CharField(
+        max_length=255,
+        help_text="Contact last name"
+    )
+
+    email = models.EmailField(
+        unique=True,
+        help_text="Contact email address"
+        )
+    
+    clients = models.ManyToManyField(
+        Client,
+        related_name='contacts',
+        blank=True,
+        help_text="Clients linked to this contact"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'contacts'
@@ -19,5 +39,8 @@ class Contact(models.Model):
         return f'{self.surname} {self.name}'
 
     @property
-    def full_name(self):
+    def get_full_name(self):
         return f'{self.surname} {self.name}'
+    
+    def get_linked_clients_count(self):
+        return self.clients.count()

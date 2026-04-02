@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - CCM{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-3xl font-bold text-gray-900">{{ page_title }}</h2>
+    <a href="{% url 'clients:list' %}" class="text-blue-600 hover:underline mt-2 inline-block">← Back to Clients</a>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6 max-w-2xl">
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Name Field -->
+        <div>
+            <label for="{{ form.name.id_for_label }}" class="block text-sm font-semibold text-gray-900 mb-2">
+                Name <span class="text-red-500">*</span>
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <div class="text-red-500 text-sm mt-2">
+                    {% for error in form.name.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Form Errors -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Submit Buttons -->
+        <div class="flex gap-4 pt-4">
+            <button type="submit" class="btn btn-primary">Save Client</button>
+            <a href="{% url 'clients:list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
