@@ -9,6 +9,7 @@ class Contact(models.Model):
     clients = models.ManyToManyField(Client, blank=True, related_name='contacts')
 
     class Meta:
+        db_table = 'contacts'
         ordering = ['surname', 'name']
         indexes = [
             models.Index(fields=['surname', 'name']),
