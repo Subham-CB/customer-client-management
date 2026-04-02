@@ -63,7 +63,6 @@ class Client(models.Model):
 
         return "ABC"
 
-
     def _generate_client_code(self):
         
         prefix = self._get_prefix()

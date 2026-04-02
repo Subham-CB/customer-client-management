@@ -121,10 +121,10 @@ def client_link_contact(request, pk):
         
         return JsonResponse({
             'success': True,
-            'message': f'Contact "{contact.get_full_name()}" linked successfully',
+            'message': f'Contact "{contact.get_full_name}" linked successfully',
             'contact': {
                 'id': contact.id,
-                'full_name': contact.get_full_name(),
+                'full_name': contact.get_full_name,
                 'email': contact.email
             }
         })
@@ -159,7 +159,7 @@ def client_unlink_contact(request, pk, contact_id):
         
         return JsonResponse({
             'success': True,
-            'message': f'Contact "{contact.get_full_name()}" unlinked successfully'
+            'message': f'Contact "{contact.get_full_name}" unlinked successfully'
         })
     
     except Exception as e:
