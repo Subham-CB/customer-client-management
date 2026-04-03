@@ -23,7 +23,7 @@ client_contact_app/
 ├── clients/              # Clients app (models, views, forms, URLs)
 ├── contacts/             # Contacts app (models, views, forms, URLs)
 ├── templates/            # HTML templates (base, clients/, contacts/)
-├── static/               # Static assets (CSS, JS)
+├── static/               # Static assets (CSS)
 ├── manage.py
 ├── requirements.txt
 ├── Dockerfile
@@ -68,7 +68,7 @@ DB_HOST=db          # Use 'db' for Docker, 'localhost' for local dev
 DB_PORT=5432
 ```
 
-> ⚠️ Never commit your `.env` file to version control. Add it to `.gitignore`.
+
 
 ---
 
