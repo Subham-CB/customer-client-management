@@ -14,7 +14,7 @@ A Django web application for managing relationships between **clients** and **co
 - [Running Locally](#running-locally)
 - [API Routes](#api-routes)
 - [Database Models](#database-models)
-- [Admin Interface](#admin-interface)
+
 
 ---
 
