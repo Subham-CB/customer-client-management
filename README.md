@@ -1,4 +1,4 @@
-# Customer-Client Management System
+# Customer Client Management System
 
 A Django web application for managing relationships between **clients** and **contacts** with bidirectional linking, auto-generated client codes, and a clean, responsive UI.
 
